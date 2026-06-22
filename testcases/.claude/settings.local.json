@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//d/PyCharm 2023.2.8/Test_app_todo/**)",
+      "Bash(cat .gitignore)"
+    ]
+  }
+}
