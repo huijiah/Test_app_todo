@@ -1,0 +1,45 @@
+# To-Do-App 接口自动化测试 - 缺陷报告
+
+## 测试环境
+- Python 3.11 / Pytest 9.1.1
+- Docker Compose (Flask + MySQL 8.0)
+- 源码文件：app.py、models.py、routes.py、init.sql、docker-compose.yml
+- 测试工具：Postman、Charles、pytest-rerunfailures
+
+## 缺陷总览
+| 级别 | 数量 | 代表性问题 |
+|------|------|-----------|
+| P0  | 4    | 请求体无校验致 500、空注册污染数据、Content-Type 错误崩溃 |
+| P1  | 4    | 游标泄漏、DB 异常无处理、无更新/删除接口、长度校验缺失 |
+| P2  | 4    | 数据存内存、密码明文、创建任务不返回 ID、无分页 |
+
+## 重点复现缺陷（自动化用例管理）
+
+### Bug #1 - `/login` 接口未校验请求体字段导致 KeyError → 500
+- **级别**：P0
+- **位置**：routes.py:21 直接取 `data['username']`、`data['password']`
+- **复现**：缺少 username / password / 空 body / Content-Type 非 JSON → 500
+- **预期**：400 + 明确字段提示
+- **实际**：HTML 堆栈 500 错误
+- **自动化**：`testcases/test_login_bugs.py`，使用 `@pytest.mark.xfail` 标记
+
+### Bug #4 - `/register` 可注册空用户名与空密码
+- **级别**：P0
+- **位置**：routes.py:13-16，`users[None] = None`
+- **复现**：空 body / 缺字段 / 显式 null → 201 成功
+- **预期**：400 拒绝
+- **实际**：201，脏数据写入
+- **自动化**：`testcases/test_register_bugs.py`，xfail 标记
+
+## 其余缺陷简述
+- **P0**：#2 `/tasks` POST 缺 description 字段 KeyError 500；#3 未处理 `get_json()` 为 None 导致 AttributeError 500
+- **P1**：#5 description 无长度校验；#6 游标未关闭泄漏；#7 DB 不可用返回 HTML 500；#8 缺少 PUT/DELETE 路由
+- **P2**：#9 用户数据存内存丢失；#10 密码明文；#11 创建不返回 ID；#12 无分页
+
+## 自动化测试框架
+- 分层架构：config / common / testcases，数据 JSON 驱动
+- CI：GitHub Actions 自动触发，Allure 报告
+- 缺陷管理：pytest.mark.xfail + rerunfailures 排除环境抖动
+
+## 测试代码仓库
+https://github.com/huijiah/Test_app_todo
