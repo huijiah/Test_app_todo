@@ -55,7 +55,7 @@ jobs:
       # 7. 运行接口测试
       - name: 运行接口测试
         run: |
-          pytest tests/ -v --alluredir=allure-results
+          pytest testcases/ -v --alluredir=allure-results
 
       # 8. 生成 Allure 报告
       - name: 生成 Allure 报告
