@@ -13,18 +13,18 @@ jobs:
     steps:
       # 1. 拉取测试项目代码
       - name: 拉取测试代码
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # 2. 拉取原项目（被测系统）源码
       - name: 拉取原项目源码
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: huijiah/To-Do-App
           path: To-Do-App
 
       # 3. 安装 Python 与测试依赖
       - name: 安装 Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -38,7 +38,7 @@ jobs:
         run: |
           cd To-Do-App
           docker-compose up -d
-          sleep 20                    # 等待 MySQL 初始化完成
+          sleep 25
           docker-compose ps
 
       # 5. 运行接口测试
@@ -55,7 +55,7 @@ jobs:
       # 7. 上传报告
       - name: 上传 Allure 报告
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: allure-report
           path: allure-report/
