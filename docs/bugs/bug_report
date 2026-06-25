@@ -1,45 +1,47 @@
-# To-Do-App 接口自动化测试 - 缺陷报告
+# To-Do-App 缺陷报告
 
 ## 测试环境
+
 - Python 3.11 / Pytest 9.1.1
 - Docker Compose (Flask + MySQL 8.0)
-- 源码文件：app.py、models.py、routes.py、init.sql、docker-compose.yml
+- 源码版本：Zero9BSC/To-Do-App main 分支
 - 测试工具：Postman、Charles、pytest-rerunfailures
 
 ## 缺陷总览
-| 级别 | 数量 | 代表性问题 |
-|------|------|-----------|
-| P0  | 4    | 请求体无校验致 500、空注册污染数据、Content-Type 错误崩溃 |
-| P1  | 4    | 游标泄漏、DB 异常无处理、无更新/删除接口、长度校验缺失 |
-| P2  | 4    | 数据存内存、密码明文、创建任务不返回 ID、无分页 |
 
-## 重点复现缺陷（自动化用例管理）
+| 级别 | 数量 | 编号 |
+|------|------|------|
+| P0 - Critical | 4 | #001 ~ #004 |
+| P1 - Major | 4 | #005 ~ #008 |
+| P2 - Minor | 4 | #009 ~ #012 |
 
-### Bug #1 - `/login` 接口未校验请求体字段导致 KeyError → 500
-- **级别**：P0
-- **位置**：routes.py:21 直接取 `data['username']`、`data['password']`
-- **复现**：缺少 username / password / 空 body / Content-Type 非 JSON → 500
-- **预期**：400 + 明确字段提示
-- **实际**：HTML 堆栈 500 错误
-- **自动化**：`testcases/test_login_bugs.py`，使用 `@pytest.mark.xfail` 标记
+## P0 - Critical（必现崩溃/数据污染）
 
-### Bug #4 - `/register` 可注册空用户名与空密码
-- **级别**：P0
-- **位置**：routes.py:13-16，`users[None] = None`
-- **复现**：空 body / 缺字段 / 显式 null → 201 成功
-- **预期**：400 拒绝
-- **实际**：201，脏数据写入
-- **自动化**：`testcases/test_register_bugs.py`，xfail 标记
+| 编号 | 标题 | 文件 |
+|------|------|------|
+| #001 | `/login` 请求体缺少字段 KeyError → 500 | [bug_001_login_keyerror_500.md](./bug_001_login_keyerror_500.md) |
+| #002 | `/tasks POST` 缺少 description 字段 KeyError → 500 | [bug_002_create_task_keyerror_500.md](./bug_002_create_task_keyerror_500.md) |
+| #003 | 所有接口未处理 `get_json()` 返回 None | [bug_003_get_json_none_crash.md](./bug_003_get_json_none_crash.md) |
+| #004 | `/register` 不校验空值，可注册 None 用户 | [bug_004_register_null_user.md](./bug_004_register_null_user.md) |
 
-## 其余缺陷简述
-- **P0**：#2 `/tasks` POST 缺 description 字段 KeyError 500；#3 未处理 `get_json()` 为 None 导致 AttributeError 500
-- **P1**：#5 description 无长度校验；#6 游标未关闭泄漏；#7 DB 不可用返回 HTML 500；#8 缺少 PUT/DELETE 路由
-- **P2**：#9 用户数据存内存丢失；#10 密码明文；#11 创建不返回 ID；#12 无分页
+## P1 - Major（功能异常/资源泄漏）
 
-## 自动化测试框架
-- 分层架构：config / common / testcases，数据 JSON 驱动
-- CI：GitHub Actions 自动触发，Allure 报告
-- 缺陷管理：pytest.mark.xfail + rerunfailures 排除环境抖动
+| 编号 | 标题 | 文件 |
+|------|------|------|
+| #005 | description 无长度校验，超 VARCHAR(255) 静默截断 | [bug_005_description_length_overflow.md](./bug_005_description_length_overflow.md) |
+| #006 | cursor 对象未关闭，连接泄漏 | [bug_006_cursor_resource_leak.md](./bug_006_cursor_resource_leak.md) |
+| #007 | 数据库连接无异常处理，DB 不可用时返回 HTML 500 | [bug_007_db_connection_no_error_handling.md](./bug_007_db_connection_no_error_handling.md) |
+| #008 | 缺少 PUT/DELETE 路由，API 功能不完整 | [bug_008_missing_put_delete_routes.md](./bug_008_missing_put_delete_routes.md) |
+
+## P2 - Minor（设计缺陷/改进建议）
+
+| 编号 | 标题 | 文件 |
+|------|------|------|
+| #009 | 用户数据存内存，重启后丢失 | [bug_009_users_in_memory_lost_on_restart.md](./bug_009_users_in_memory_lost_on_restart.md) |
+| #010 | 密码明文存储 | [bug_010_password_plaintext.md](./bug_010_password_plaintext.md) |
+| #011 | `/tasks POST` 创建成功不返回 task ID | [bug_011_create_task_no_id_return.md](./bug_011_create_task_no_id_return.md) |
+| #012 | `/tasks GET` 无分页 | [bug_012_no_pagination.md](./bug_012_no_pagination.md) |
 
 ## 测试代码仓库
+
 https://github.com/huijiah/Test_app_todo
