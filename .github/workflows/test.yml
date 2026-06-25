@@ -15,14 +15,18 @@ jobs:
       - name: 拉取测试代码
         uses: actions/checkout@v4
 
-      # 2. 拉取原项目（被测系统）源码
+      # 2. 拉取原项目源码（注意：使用原作者仓库）
       - name: 拉取原项目源码
         uses: actions/checkout@v4
         with:
-          repository: huijiah/To-Do-App
+          repository: Zero9BSC/To-Do-App
           path: To-Do-App
 
-      # 3. 安装 Python 与测试依赖
+      # 3. 检查原项目是否拉取成功（方便排查）
+      - name: 检查原项目文件
+        run: ls -la To-Do-App/
+
+      # 4. 安装 Python 和测试依赖
       - name: 安装 Python
         uses: actions/setup-python@v5
         with:
@@ -33,26 +37,33 @@ jobs:
           pip install -r requirements.txt
           pip install pytest allure-pytest
 
-      # 4. 启动原项目的 Docker 服务（Flask + MySQL）
+      # 5. 安装 Allure 命令行工具
+      - name: 安装 Allure 命令行
+        run: |
+          wget -q https://github.com/allure-framework/allure2/releases/download/2.30.0/allure-2.30.0.tgz
+          tar -xzf allure-2.30.0.tgz
+          echo "$(pwd)/allure-2.30.0/bin" >> $GITHUB_PATH
+
+      # 6. 启动原项目服务（适配新版 docker compose）
       - name: 启动被测服务
         run: |
           cd To-Do-App
-          docker-compose up -d
+          docker compose up --build -d
           sleep 25
-          docker-compose ps
+          docker compose ps
 
-      # 5. 运行接口测试
+      # 7. 运行接口测试
       - name: 运行接口测试
         run: |
           pytest tests/ -v --alluredir=allure-results
 
-      # 6. 生成 Allure 报告
+      # 8. 生成 Allure 报告
       - name: 生成 Allure 报告
         if: always()
         run: |
           allure generate allure-results -o allure-report --clean
 
-      # 7. 上传报告
+      # 9. 上传报告
       - name: 上传 Allure 报告
         if: always()
         uses: actions/upload-artifact@v4
