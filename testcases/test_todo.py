@@ -26,7 +26,7 @@ def test_parametrize_create_tasks(auth_token, task_desc):
 def auth_token():
     """这是一个前置操作：先注册，再登录，最后把获取到的 Token 返回给测试用例使用"""
 
-    # 1. 注册用户（如果用户已存在，可能会报错，但这里为了演示环境，先发请求）
+    # 1. 注册用户
     register_data = {"username": USERNAME, "password": PASSWORD}
     requests.post(f"{BASE_URL}/register", json=register_data)
 
@@ -74,7 +74,7 @@ def test_create_task_and_db_verify(auth_token):
             print(f"✅ 数据库验证成功！查到记录 -> ID: {task_id}")
 
     finally:
-        # 3. 【新增】无论上面的断言是否通过，最后都要把这条垃圾数据删掉！
+        # 3. 垃圾数据删除
         if task_id:
             with conn.cursor() as cursor:
                 delete_sql = "DELETE FROM tasks WHERE id = %s"
